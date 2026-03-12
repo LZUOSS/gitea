@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -70,8 +69,9 @@ func (repo *Repository) parsePrettyFormatLogToList(logs []byte) ([]*Commit, erro
 }
 
 // IsRepoURLAccessible checks if given repository URL is accessible.
-func IsRepoURLAccessible(ctx context.Context, url string) bool {
-	_, _, err := gitcmd.NewCommand("ls-remote", "-q", "-h").AddDynamicArguments(url, "HEAD").RunStdString(ctx, nil)
+func IsRepoURLAccessible(ctx context.Context, rawURL string) bool {
+	envs := proxy.EnvWithProxyRaw(rawURL)
+	_, _, err := gitcmd.NewCommand("ls-remote", "-q", "-h").AddDynamicArguments(rawURL, "HEAD").RunStdString(ctx, &gitcmd.RunOpts{Env: envs})
 	return err == nil
 }
 
@@ -172,14 +172,10 @@ func Clone(ctx context.Context, from, to string, opts CloneRepoOptions) error {
 		opts.Timeout = -1
 	}
 
-	envs := os.Environ()
-	u, err := url.Parse(from)
-	if err == nil {
-		envs = proxy.EnvWithProxy(u)
-	}
+	envs := proxy.EnvWithProxyRaw(from)
 
 	stderr := new(bytes.Buffer)
-	if err = cmd.Run(ctx, &gitcmd.RunOpts{
+	if err := cmd.Run(ctx, &gitcmd.RunOpts{
 		Timeout: opts.Timeout,
 		Env:     envs,
 		Stdout:  io.Discard,

@@ -16,6 +16,7 @@ import (
 	"code.gitea.io/gitea/modules/json"
 	"code.gitea.io/gitea/modules/log"
 	base "code.gitea.io/gitea/modules/migration"
+	"code.gitea.io/gitea/modules/proxy"
 	"code.gitea.io/gitea/modules/structs"
 
 	"github.com/hashicorp/go-version"
@@ -77,18 +78,29 @@ type OneDevDownloader struct {
 }
 
 // NewOneDevDownloader creates a new downloader
+type onedevBasicAuthTransport struct {
+	transport http.RoundTripper
+	username  string
+	password  string
+}
+
+func (t *onedevBasicAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if t.username != "" && t.password != "" {
+		req = req.Clone(req.Context())
+		req.SetBasicAuth(t.username, t.password)
+	}
+	return t.transport.RoundTrip(req)
+}
+
 func NewOneDevDownloader(_ context.Context, baseURL *url.URL, username, password, repoPath string) *OneDevDownloader {
 	downloader := &OneDevDownloader{
 		baseURL:  baseURL,
 		repoPath: repoPath,
 		client: &http.Client{
-			Transport: &http.Transport{
-				Proxy: func(req *http.Request) (*url.URL, error) {
-					if len(username) > 0 && len(password) > 0 {
-						req.SetBasicAuth(username, password)
-					}
-					return nil, nil
-				},
+			Transport: &onedevBasicAuthTransport{
+				transport: proxy.NewProxyHTTPTransport(),
+				username:  username,
+				password:  password,
 			},
 		},
 		userMap:      make(map[int64]*onedevUser),

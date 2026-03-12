@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"code.gitea.io/gitea/modules/json"
+	"code.gitea.io/gitea/modules/proxy"
 	"code.gitea.io/gitea/modules/setting"
 )
 
@@ -120,7 +121,7 @@ func (c *Client) Verify(token string, opts PostOptions) (*Response, error) {
 
 // Verify calls hCaptcha API to verify token
 func Verify(ctx context.Context, response string) (bool, error) {
-	client, err := New(setting.Service.HcaptchaSecret, WithContext(ctx))
+	client, err := New(setting.Service.HcaptchaSecret, WithContext(ctx), WithHTTP(proxy.NewProxyHTTPClient()))
 	if err != nil {
 		return false, err
 	}

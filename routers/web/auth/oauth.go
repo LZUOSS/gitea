@@ -19,6 +19,7 @@ import (
 	"code.gitea.io/gitea/modules/container"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/optional"
+	"code.gitea.io/gitea/modules/proxy"
 	"code.gitea.io/gitea/modules/session"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/web/middleware"
@@ -305,7 +306,7 @@ func showLinkingLogin(ctx *context.Context, authSourceID int64, gothUser goth.Us
 
 func oauth2UpdateAvatarIfNeed(ctx *context.Context, url string, u *user_model.User) {
 	if setting.OAuth2Client.UpdateAvatar && len(url) > 0 {
-		resp, err := http.Get(url)
+		resp, err := proxy.NewProxyHTTPClient().Get(url)
 		if err == nil {
 			defer func() {
 				_ = resp.Body.Close()

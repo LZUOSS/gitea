@@ -15,11 +15,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"code.gitea.io/gitea/modules/proxy"
 )
 
 var defaultTransport = sync.OnceValue(func() http.RoundTripper {
 	return &http.Transport{
-		Proxy:       http.ProxyFromEnvironment,
+		Proxy:       proxy.Proxy(),
 		DialContext: DialContextWithTimeout(10 * time.Second), // it is good enough in modern days
 	}
 })

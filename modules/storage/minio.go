@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"code.gitea.io/gitea/modules/log"
+	"code.gitea.io/gitea/modules/proxy"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/util"
 
@@ -100,7 +101,7 @@ func NewMinioStorage(ctx context.Context, cfg *setting.Storage) (ObjectStorage, 
 	minioClient, err := minio.New(config.Endpoint, &minio.Options{
 		Creds:        buildMinioCredentials(config),
 		Secure:       config.UseSSL,
-		Transport:    &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: config.InsecureSkipVerify}},
+		Transport:    &http.Transport{Proxy: proxy.Proxy(), TLSClientConfig: &tls.Config{InsecureSkipVerify: config.InsecureSkipVerify}},
 		Region:       config.Location,
 		BucketLookup: lookup,
 	})

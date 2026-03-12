@@ -6,10 +6,11 @@ package uri
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	"code.gitea.io/gitea/modules/proxy"
 )
 
 // ErrURISchemeNotSupported represents a scheme error
@@ -29,7 +30,7 @@ func Open(uriStr string) (io.ReadCloser, error) {
 	}
 	switch strings.ToLower(u.Scheme) {
 	case "http", "https":
-		f, err := http.Get(uriStr)
+		f, err := proxy.NewProxyHTTPClient().Get(uriStr)
 		if err != nil {
 			return nil, err
 		}

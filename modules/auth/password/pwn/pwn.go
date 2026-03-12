@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 
+	"code.gitea.io/gitea/modules/proxy"
 	"code.gitea.io/gitea/modules/setting"
 )
 
@@ -32,7 +33,7 @@ type Client struct {
 func New(options ...ClientOption) *Client {
 	client := &Client{
 		ctx:  context.Background(),
-		http: http.DefaultClient,
+		http: proxy.NewProxyHTTPClient(),
 	}
 
 	for _, opt := range options {

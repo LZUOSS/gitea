@@ -15,10 +15,12 @@ var Proxy = struct {
 	ProxyURL      string
 	ProxyURLFixed *url.URL
 	ProxyHosts    []string
+	NoProxy       []string
 }{
 	Enabled:    false,
 	ProxyURL:   "",
 	ProxyHosts: []string{},
+	NoProxy:    []string{},
 }
 
 func loadProxyFrom(rootCfg ConfigProvider) {
@@ -34,4 +36,5 @@ func loadProxyFrom(rootCfg ConfigProvider) {
 		}
 	}
 	Proxy.ProxyHosts = sec.Key("PROXY_HOSTS").Strings(",")
+	Proxy.NoProxy = sec.Key("NO_PROXY").Strings(",")
 }

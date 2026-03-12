@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -21,6 +20,7 @@ import (
 	"code.gitea.io/gitea/modules/git/gitcmd"
 	"code.gitea.io/gitea/modules/log"
 	base "code.gitea.io/gitea/modules/migration"
+	"code.gitea.io/gitea/modules/proxy"
 	"code.gitea.io/gitea/modules/repository"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/structs"
@@ -307,7 +307,7 @@ func (g *RepositoryDumper) CreateReleases(_ context.Context, releases ...*base.R
 							return err
 						}
 					} else {
-						resp, err := http.Get(*asset.DownloadURL)
+						resp, err := proxy.NewProxyHTTPClient().Get(*asset.DownloadURL)
 						if err != nil {
 							return err
 						}
@@ -443,7 +443,7 @@ func (g *RepositoryDumper) handlePullRequest(ctx context.Context, pr *base.PullR
 
 		// SECURITY: We will assume that the pr.PatchURL has been checked
 		// pr.PatchURL maybe a local file - but note EnsureSafe should be asserting that this safe
-		resp, err := http.Get(u) // TODO: This probably needs to use the downloader as there may be rate limiting issues here
+		resp, err := proxy.NewProxyHTTPClient().Get(u) // TODO: This probably needs to use the downloader as there may be rate limiting issues here
 		if err != nil {
 			return err
 		}
